@@ -57,7 +57,7 @@ public class CategoryServiceImpl implements CategoryService{
 	@Override
 	public CategoryDTO updateCategory(Long categoryId, CategoryDTO cateDTO) {
 		Optional<Category> cateName = cateRepo.findByCategoryName(cateDTO.getCategoryName());
-		if (cateName.isPresent()) {
+		if (cateName.isPresent() && cateName.get().getCategoryId() != categoryId) {
 			throw new DuplicateCategoryException("Category '"+cateDTO.getCategoryName()+"' already exists.");
 		}
 		

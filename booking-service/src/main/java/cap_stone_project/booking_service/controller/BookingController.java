@@ -15,10 +15,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import cap_stone_project.booking_service.Enum.BookingStatus;
-import cap_stone_project.booking_service.entity.Booking;
-import cap_stone_project.booking_service.exception.BookingNotFoundException;
-import cap_stone_project.booking_service.exception.InvalidBookingStateException;
 import cap_stone_project.booking_service.model.BookingRequestDTO;
 import cap_stone_project.booking_service.model.BookingResponseDTO;
 import cap_stone_project.booking_service.model.BookingUpdateDTO;
@@ -120,6 +116,13 @@ public class BookingController {
         return ResponseEntity.ok(bookingService.completeService(requestId));
     }
 
+    
+    
+    // When Assignment-Service assigns a technician: Booking Status -> CREATED -> ASSIGNED
+    @PutMapping("/assign/{requestId}")
+    public ResponseEntity<String> markAssigned(@PathVariable Long requestId) {
+    	return ResponseEntity.status(HttpStatus.SC_OK).body(bookingService.markAsAssigned(requestId));
+    }
 
     
     

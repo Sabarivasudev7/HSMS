@@ -30,5 +30,7 @@ public interface BookingService {
 	String startService(Long requestId);
 	
 	String completeService(Long requestId);
+	
+	String markAsAssigned(Long requestId);
 
 }

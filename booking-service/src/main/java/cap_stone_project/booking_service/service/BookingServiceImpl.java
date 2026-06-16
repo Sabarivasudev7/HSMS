@@ -191,4 +191,17 @@ public class BookingServiceImpl implements BookingService{
 	    return "Service Completed Successfully";
 	}
 
+	// When Assignment-Service assigns a technician: Booking Status -> CREATED -> ASSIGNED
+	@Override
+	public String markAsAssigned(Long requestId) {
+	    Booking booking = bookingRepo.findById(requestId).orElseThrow(() -> new BookingNotFoundException("Booking " + requestId + " not found"));
+	    if (booking.getStatus() != BookingStatus.CREATED) {
+	        throw new InvalidBookingStateException("Only CREATED bookings can be ASSIGNED");
+	    }
+	    booking.setStatus(BookingStatus.ASSIGNED);
+	    bookingRepo.save(booking);
+	    return "Service Assigned Successfully";
+	}
+	
+	
 }

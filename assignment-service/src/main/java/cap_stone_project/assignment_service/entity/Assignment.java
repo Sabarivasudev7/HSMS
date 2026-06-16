@@ -24,15 +24,13 @@ import lombok.Setter;
 public class Assignment {
 	
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long assignmentId;
-	
-	private LocalDateTime assignedDate;
-	
-	private Long technicianId;
-	
-//	private Long bookingId;
-	
-//	private Long categoryId;
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    private Long assignmentId;
+
+    private Long technicianId;
+
+    private Long serviceRequestId;
+
+    private LocalDateTime assignedDate;
 
 }

@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import cap_stone_project.booking_service.Enum.BookingStatus;
 import cap_stone_project.booking_service.entity.Booking;
@@ -26,11 +28,12 @@ public class BookingRepositoryTest {
 	// Find By Customer Id
 	@Test
 	void testFindByCustomerId() {
-		Booking booking = new Booking(null, "Plumbing", BookingStatus.CREATED, "Hyd", LocalDateTime.now().plusDays(1), LocalDateTime.now(), 1L, 101L, null, null);
+		Booking booking = new Booking(null, null, null, "Plumbing", BookingStatus.CREATED, "Hyd", LocalDateTime.now().plusDays(1), LocalDateTime.now(), 1L, 101L, "CREATED");
 		bookingRepo.save(booking);
 		
-		Page<Booking> result = bookingRepo.findByCustomerId(101L, PageRequest.of(0,10));
-		assertEquals(1, result.getSize());
+		Pageable pageable = PageRequest.of(0,10);
+		Page<Booking> result = bookingRepo.findByCustomerId(101L,pageable);
+		assertEquals(1,result.getContent().size());		assertEquals(1, result.getSize());
 	}
 	
 	
@@ -38,11 +41,11 @@ public class BookingRepositoryTest {
 	// Find By Status
 	@Test
 	void testFindByStatus() {
-		Booking booking = new Booking(null, "Cleaning", BookingStatus.CREATED, "Vijayawada", 
-				LocalDateTime.now().plusDays(1), LocalDateTime.now(), 2L, 102L, null, null);
+		Booking booking = new Booking(null, null, null, "Cleaning", BookingStatus.CREATED, "Vijayawada", 
+				LocalDateTime.now().plusDays(1), LocalDateTime.now(), 2L, 102L, "CREATED");
 		bookingRepo.save(booking);
-		Page<Booking> result = bookingRepo.findByCustomerId(101L, PageRequest.of(0,10));
-		assertEquals(1, result.getSize());
+		List<Booking> result = bookingRepo.findByStatus(BookingStatus.CREATED);
+		assertEquals(1, result.size());
 	}
 	
 	
@@ -51,8 +54,8 @@ public class BookingRepositoryTest {
 	// Find By Id
 	@Test
 	void testFindById() {
-		Booking booking = new Booking(null, "Electrical", BookingStatus.CREATED, "Kakinada", 
-				LocalDateTime.now().plusDays(1), LocalDateTime.now(), 3L, 132L, null, null);
+		Booking booking = new Booking(null, null, null, "Electrical", BookingStatus.CREATED, "Kakinada", 
+				LocalDateTime.now().plusDays(1), LocalDateTime.now(), 3L, 132L, "CREATED");
 		Booking saved = bookingRepo.save(booking);
 		Optional<Booking> result = bookingRepo.findById(saved.getRequestId());
 		assertTrue(result.isPresent());
