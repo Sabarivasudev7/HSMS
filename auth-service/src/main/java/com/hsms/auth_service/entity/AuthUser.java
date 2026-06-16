@@ -32,11 +32,11 @@ public class AuthUser {
     @Column(nullable = false, unique = true,length=20)
     private String email;
 
-    @Column(nullable = false)
+    @Column(nullable = false,length=100)
     private String password;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false,length=15)
     private Role role;
 
     @Column(nullable = false)
