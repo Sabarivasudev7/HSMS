@@ -23,5 +23,12 @@ public interface BookingService {
 	
 	Page<BookingResponseDTO> getBookingsByCustomer(Long customerId, Pageable pageable);
 
+	String acceptBooking(Long requestId);
+	
+	String rejectBooking(Long requestId);
+	
+	String startService(Long requestId);
+	
+	String completeService(Long requestId);
 
 }

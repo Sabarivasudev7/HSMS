@@ -44,5 +44,9 @@ public class Booking {
 	private Long categoryId;
 	
 	private Long customerId;
+	
+	private Long technicianId;
+
+	private String technicianName;
 
 }

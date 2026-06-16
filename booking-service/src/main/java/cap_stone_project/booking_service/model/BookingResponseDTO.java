@@ -2,6 +2,7 @@ package cap_stone_project.booking_service.model;
 
 import java.time.LocalDateTime;
 
+import cap_stone_project.booking_service.Enum.BookingStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -31,7 +32,7 @@ public class BookingResponseDTO {
 	private String address;
 	
 
-	private String status;
+	private BookingStatus status;
 	
 
 	private LocalDateTime createdAt;

@@ -43,10 +43,10 @@ public class BookingServiceImpl implements BookingService{
 	@Override
 	public BookingResponseDTO createBooking(BookingRequestDTO bookingRequestDTO) {
 		CategoryResponseDTO cate = cateFeignClient.getCategoryById(bookingRequestDTO.getCategoryId());
-		if (cate == null || !cate.isActive()) {
+		if (cate == null) {
 			throw new BookingNotFoundException("Category "+ bookingRequestDTO.getCategoryId() +" not found.");
 		}
-		if (cate.isActive() == false) {
+		if (!cate.isActive()) {
 			throw new BookingNotFoundException("This "+bookingRequestDTO.getCategoryId()+" Category is not Activated.");
 		}
 		
@@ -71,8 +71,7 @@ public class BookingServiceImpl implements BookingService{
 	// Find By Id 
 	@Override
 	public BookingResponseDTO findBookingById(Long requestId) {
-		Booking booking = bookingRepo.findById(requestId).orElseThrow(() -> 
-							new BookingNotFoundException("Booking "+ requestId +" not found"));
+		Booking booking = bookingRepo.findById(requestId).orElseThrow(() -> new BookingNotFoundException("Booking "+ requestId +" not found"));
 		return modelMapper.map(booking, BookingResponseDTO.class);
 	}
 
@@ -82,16 +81,12 @@ public class BookingServiceImpl implements BookingService{
 	// Update Booking
 	@Override
 	public BookingResponseDTO updateBooking(Long requestId, BookingUpdateDTO bookingUpdateDTO) {
-		Booking booking = bookingRepo.findById(requestId).orElseThrow(() -> 
-							new BookingNotFoundException("Bookin "+requestId+" not found"));
-		if (booking.getStatus() == BookingStatus.COMPLETED || booking.getStatus() == BookingStatus.CANCELLED) {
-		    throw new InvalidBookingStateException( "Completed or Cancelled booking cannot be modified");
+		Booking booking = bookingRepo.findById(requestId).orElseThrow(() -> new BookingNotFoundException("Bookin "+requestId+" not found"));
+		if (booking.getStatus() == BookingStatus.COMPLETED || booking.getStatus() == BookingStatus.CANCELLED || booking.getStatus() == BookingStatus.IN_PROGRESS) {
+		    throw new InvalidBookingStateException( "Now Booking cannot be modified");
 		}
-		
-		if (booking.getStatus() == BookingStatus.ACCEPTED || (booking.getStatus() == BookingStatus.IN_PROGRESS)) {
-			booking.setAddress(bookingUpdateDTO.getAddress());
-			booking.setScheduleDateTime(bookingUpdateDTO.getScheduleDateTime());
-		}
+		booking.setAddress(bookingUpdateDTO.getAddress());
+		booking.setScheduleDateTime(bookingUpdateDTO.getScheduleDateTime());
 
 		Booking updateBooking = bookingRepo.save(booking);
 		
@@ -104,10 +99,9 @@ public class BookingServiceImpl implements BookingService{
 	// Cancel Booking
 	@Override
 	public String cancelBooking(Long requestId) {
-		Booking booking = bookingRepo.findById(requestId).orElseThrow(() -> 
-							new BookingNotFoundException("Bookin "+requestId+" not found"));
-		if (booking.getStatus() == BookingStatus.CREATED
-			&& (booking.getStatus() == BookingStatus.ASSIGNED)) {
+		Booking booking = bookingRepo.findById(requestId).orElseThrow(() -> new BookingNotFoundException("Bookin "+requestId+" not found"));
+		if (booking.getStatus() != BookingStatus.CREATED
+			&& (booking.getStatus() != BookingStatus.ASSIGNED)) {
 			throw new InvalidBookingStateException("Only CREATED or ASSIGNED bookings can be cancelled");
 		}
 		booking.setStatus(BookingStatus.CANCELLED);
@@ -132,6 +126,69 @@ public class BookingServiceImpl implements BookingService{
 	@Override
 	public Page<BookingResponseDTO> getBookingsByCustomer(Long customerId, Pageable pageable) {
 		return bookingRepo.findByCustomerId(customerId, pageable).map(booking -> modelMapper.map(booking,  BookingResponseDTO.class));
+	}
+
+
+
+	// Technician can accept assigned jobs
+	// Status updated to ACCEPTED
+	@Override
+	public String acceptBooking(Long requestId) {
+		Booking booking = bookingRepo.findById(requestId).orElseThrow(() -> new BookingNotFoundException("Booking " + requestId + " not found"));
+		if (booking.getStatus() != BookingStatus.ASSIGNED) {
+			throw new InvalidBookingStateException("Only ASSIGNED bookings can be accepted");
+		}
+		booking.setStatus(BookingStatus.ACCEPTED);
+		bookingRepo.save(booking);
+		return "Booking Accepted Successfully";
+	}
+
+
+
+	// Technician can reject assigned jobs
+	// Status updated to REJECTED
+	@Override
+	public String rejectBooking(Long requestId) {
+
+	    Booking booking = bookingRepo.findById(requestId).orElseThrow(() -> new BookingNotFoundException("Booking " + requestId + " not found"));
+
+	    if (booking.getStatus() != BookingStatus.ASSIGNED) {
+	        throw new InvalidBookingStateException("Only ASSIGNED bookings can be rejected");
+	    }
+	    booking.setStatus(BookingStatus.REJECTED);
+	    bookingRepo.save(booking);
+	    return "Booking Rejected Successfully";
+	}
+
+
+
+	// Only ACCEPTED requests can be started
+	// Status changes to IN_PROGRESS
+	@Override
+	public String startService(Long requestId) {
+	    Booking booking = bookingRepo.findById(requestId).orElseThrow(() -> new BookingNotFoundException("Booking " + requestId + " not found"));
+	    if (booking.getStatus() != BookingStatus.ACCEPTED) {
+	        throw new InvalidBookingStateException("Only ACCEPTED bookings can start service");
+	    }
+	    booking.setStatus(BookingStatus.IN_PROGRESS);
+	    bookingRepo.save(booking);
+	    return "Service Started Successfully";
+	}
+
+
+
+	// Only IN_PROGRESS requests can be completed
+	// Status changes to COMPLETED
+	@Override
+	public String completeService(Long requestId) {
+	    Booking booking = bookingRepo.findById(requestId).orElseThrow(() -> new BookingNotFoundException("Booking " + requestId + " not found"));
+
+	    if (booking.getStatus() != BookingStatus.IN_PROGRESS) {
+	        throw new InvalidBookingStateException("Only IN_PROGRESS bookings can be completed");
+	    }
+	    booking.setStatus(BookingStatus.COMPLETED);
+	    bookingRepo.save(booking);
+	    return "Service Completed Successfully";
 	}
 
 }

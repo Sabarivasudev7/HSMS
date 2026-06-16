@@ -15,6 +15,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import cap_stone_project.booking_service.Enum.BookingStatus;
+import cap_stone_project.booking_service.entity.Booking;
+import cap_stone_project.booking_service.exception.BookingNotFoundException;
+import cap_stone_project.booking_service.exception.InvalidBookingStateException;
 import cap_stone_project.booking_service.model.BookingRequestDTO;
 import cap_stone_project.booking_service.model.BookingResponseDTO;
 import cap_stone_project.booking_service.model.BookingUpdateDTO;
@@ -78,6 +82,44 @@ public class BookingController {
     public ResponseEntity<Page<BookingResponseDTO>> getCustomerBookings(@PathVariable Long customerId, Pageable pageable) {
         return ResponseEntity.status(HttpStatus.SC_OK).body(bookingService.getBookingsByCustomer(customerId, pageable));
     }
+    
+    
+    
+    // Technician can accept assigned jobs
+ 	// Status updated to ACCEPTED
+    @PutMapping("/accept/{requestId}")
+    public ResponseEntity<String> acceptBooking(@PathVariable Long requestId) {
+        return ResponseEntity.ok(bookingService.acceptBooking(requestId));
+    }
+ 	
+
+
+
+ 	// Technician can reject assigned jobs
+ 	// Status updated to REJECTED
+    @PutMapping("/reject/{requestId}")
+    public ResponseEntity<String> rejectBooking(@PathVariable Long requestId) {
+        return ResponseEntity.ok(bookingService.rejectBooking(requestId));
+    }
+
+
+
+ 	// Only ACCEPTED requests can be started
+ 	// Status changes to IN_PROGRESS
+    @PutMapping("/start/{requestId}")
+    public ResponseEntity<String> startService(@PathVariable Long requestId) {
+        return ResponseEntity.ok(bookingService.startService(requestId));
+    }
+
+
+
+ 	// Only IN_PROGRESS requests can be completed
+ 	// Status changes to COMPLETED
+    @PutMapping("/complete/{requestId}")
+    public ResponseEntity<String> completeService(@PathVariable Long requestId) {
+        return ResponseEntity.ok(bookingService.completeService(requestId));
+    }
+
 
     
     
