@@ -4,15 +4,15 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.hsms.auth_service.entity.AuthUser;
-import com.hsms.auth_service.exception.InvalidCredentialsException;
 import com.hsms.auth_service.exception.UserAlreadyExistsException;
+import com.hsms.auth_service.model.RegisterRequest;
+import com.hsms.auth_service.repository.UserRepository;
+import com.hsms.auth_service.security.JwtUtil;
+import com.hsms.auth_service.model.UserRegistrationDto;
 import com.hsms.auth_service.exception.UserNotFoundException;
 import com.hsms.auth_service.model.AuthResponse;
 import com.hsms.auth_service.model.LoginRequest;
-import com.hsms.auth_service.model.RegisterRequest;
-import com.hsms.auth_service.model.UserRegistrationDto;
-import com.hsms.auth_service.repository.UserRepository;
-import com.hsms.auth_service.security.JwtUtil;
+import com.hsms.auth_service.exception.InvalidCredentialsException;
 
 import lombok.RequiredArgsConstructor;
 
@@ -20,51 +20,52 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final JwtUtil jwtUtil;
-    
-    private final UserServiceFeignClient userServiceFeignClient;
+	private final UserRepository userRepository;
+	private final PasswordEncoder passwordEncoder;
 
-    @Override
-    public String register(RegisterRequest request) {
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new UserAlreadyExistsException("Email already exists");
-        }
+	private final JwtUtil jwtUtil;
 
-        AuthUser user = new AuthUser();
-        user.setEmail(request.getEmail());
-        user.setPassword(passwordEncoder.encode(request.getPassword()));    
-        user.setRole(request.getRole());
-        user.setEnabled(true);
-        
-        AuthUser savedUser = userRepository.save(user);
+	private final UserServiceFeignClient userServiceFeignClient;
 
-        Long userId = savedUser.getId();
-        
-        sendUserToUserService(userId, savedUser.getEmail(), savedUser.getRole().name());
+	@Override
+	public String register(RegisterRequest request) {
+		if (userRepository.existsByEmail(request.getEmail())) {
+			throw new UserAlreadyExistsException("Email already exists");
+		}
 
-        return "User Registered Successfully";
-    }
+		AuthUser user = new AuthUser();
+		user.setName(request.getName());
+		user.setEmail(request.getEmail());
+		user.setPassword(passwordEncoder.encode(request.getPassword()));
+		user.setRole(request.getRole());
+		user.setEnabled(true);
+		
+		AuthUser savedUser = userRepository.save(user);
+		
+		Long userId = savedUser.getId();
 
-    @Override
-    public AuthResponse login(LoginRequest request) {
-        AuthUser user = userRepository.findByEmail(request.getEmail()).orElseThrow(() -> new UserNotFoundException("User Not Found"));
+		sendUserToUserService(userId, savedUser.getName(), savedUser.getEmail(), savedUser.getRole().name());
 
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new InvalidCredentialsException("Invalid Credentials");
-        }
+		return "User Registered Successfully";
+	}
 
-        String token = jwtUtil.generateToken(user.getEmail());
+	@Override
+	public AuthResponse login(LoginRequest request) {
+		AuthUser user = userRepository.findByEmail(request.getEmail())
+				.orElseThrow(() -> new UserNotFoundException("User Not Found"));
 
-        return new AuthResponse(token, user.getRole().name());
-    }
-    private void sendUserToUserService(Long userId,String email,String role) {
+		if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+			throw new InvalidCredentialsException("Invalid Credentials");
+		}
 
-        UserRegistrationDto dto = new UserRegistrationDto(userId,email,role);
+		String token = jwtUtil.generateToken(user.getEmail());
 
-        userServiceFeignClient.createUser(dto);
-    }
-    
+		return new AuthResponse(token, user.getRole().name(), user.getName());
+	}
+
+	private void sendUserToUserService(Long userId, String name, String email, String role) {
+		UserRegistrationDto dto = new UserRegistrationDto(userId, name, email, role);
+		userServiceFeignClient.createUser(dto);
+	}
+
 }
-
