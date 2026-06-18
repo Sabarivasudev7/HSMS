@@ -2,9 +2,11 @@ package com.hsms.user_service.controller;
 
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.hsms.user_service.exception.CustomerNotFoundException;
 import com.hsms.user_service.model.CustomerProfileDto;
 import com.hsms.user_service.service.CustomerProfileService;
 
@@ -19,7 +21,7 @@ public class CustomerProfileController {
     private final CustomerProfileService service;
 
     @PostMapping("/{id}")
-    public ResponseEntity<CustomerProfileDto> createCustomer(@PathVariable Long id,@Valid @RequestBody CustomerProfileDto dto) {
+    public ResponseEntity<CustomerProfileDto> createCustomer(@Valid @PathVariable Long id,@Valid @RequestBody CustomerProfileDto dto) {
         return ResponseEntity.ok(service.createCustomer(id, dto));
     }
 
@@ -43,4 +45,9 @@ public class CustomerProfileController {
         service.delete(id);
         return ResponseEntity.noContent().build();
     }
+    @ExceptionHandler(CustomerNotFoundException.class)
+    public ResponseEntity<String> handleCustomerNotFound(CustomerNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    }
+
 }

@@ -13,8 +13,9 @@ import lombok.Setter;
 public class UserProfileDto {
    
     private Long userId;
+    private String name;
     private String email;
     private String role;
-    private Long customerId;
-    private Long technicianId;
+    private CustomerProfileDto customerProfile;
+    private TechnicianProfileDto technicianProfile;
 }
