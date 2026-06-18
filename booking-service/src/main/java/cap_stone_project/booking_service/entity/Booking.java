@@ -29,10 +29,6 @@ public class Booking {
 	@GeneratedValue(strategy = GenerationType.SEQUENCE)
 	private Long requestId;
 	
-	private Long technicianId;
-
-	private String technicianName;
-	
 	private String serviceType;
 	
 	@Enumerated(EnumType.STRING)

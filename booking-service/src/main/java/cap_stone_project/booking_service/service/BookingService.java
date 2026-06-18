@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import cap_stone_project.booking_service.Enum.BookingStatus;
 import cap_stone_project.booking_service.model.BookingRequestDTO;
 import cap_stone_project.booking_service.model.BookingResponseDTO;
 import cap_stone_project.booking_service.model.BookingUpdateDTO;
@@ -23,14 +24,7 @@ public interface BookingService {
 	
 	Page<BookingResponseDTO> getBookingsByCustomer(Long customerId, Pageable pageable);
 
-	String acceptBooking(Long requestId);
-	
-	String rejectBooking(Long requestId);
-	
-	String startService(Long requestId);
-	
-	String completeService(Long requestId);
+	BookingResponseDTO updateBookingStatus(Long requestId, BookingStatus status);
 	
 	String markAsAssigned(Long requestId);
-
 }

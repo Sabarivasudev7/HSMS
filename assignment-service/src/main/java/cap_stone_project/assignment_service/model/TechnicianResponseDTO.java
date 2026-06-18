@@ -13,6 +13,8 @@ import lombok.Setter;
 public class TechnicianResponseDTO {
 
     private Long technicianId;
+    
     private String technicianName;
+    
     private Boolean availability;
 }

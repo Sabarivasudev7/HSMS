@@ -11,4 +11,14 @@ public interface TechnicianProfileService {
     List<TechnicianProfileDto> getAll();
     TechnicianProfileDto update(Long id, TechnicianProfileDto dto);
     void delete(Long id);
+    
+    
+    // I'm Alisha I added this below operation 
+    // if you think it is not required just remove it 
+    // but atleast check it.
+//    getTechnicianById()
+//
+//    getAvailableTechnicians()
+//
+//    updateAvailability()
 }

@@ -33,9 +33,6 @@ public class BookingRequestDTO {
 	
 	@Future(message = "Schedule Date must be in the future")
 	private LocalDateTime scheduleDateTime;
-	
-	private Long technicianId;
-	
-	private String technicianName;
+
 
 }
