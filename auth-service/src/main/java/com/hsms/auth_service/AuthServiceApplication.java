@@ -42,8 +42,8 @@ public class AuthServiceApplication {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**", "/actuator/**").permitAll()
-                .requestMatchers("/api/user/**").hasAnyAuthority("USER","ADMIN")
-                .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
+                .requestMatchers("/api/user/**").hasAnyAuthority("CUSTOMER","TECHNICIAN")
+                .requestMatchers("/api/admin/**").hasAnyAuthority("ADMIN","SERVICE_MANAGER")
                 .anyRequest().authenticated()
             )
             .exceptionHandling(exception -> exception.authenticationEntryPoint(entryPoint))

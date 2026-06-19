@@ -33,6 +33,7 @@ public class AuthServiceImpl implements AuthService {
             throw new UserAlreadyExistsException("Email already exists");
         }
 
+        
         Role role = (request.getRole() == null) ? Role.CUSTOMER : request.getRole();
 
         AuthUser user = new AuthUser();
@@ -45,6 +46,7 @@ public class AuthServiceImpl implements AuthService {
         AuthUser savedUser = userRepository.save(user);
         Long userId = savedUser.getId();
 
+        
         sendUserToUserService(userId, savedUser.getName(), savedUser.getEmail(), savedUser.getRole().name());
 
         return "User Registered Successfully";
@@ -61,16 +63,18 @@ public class AuthServiceImpl implements AuthService {
 
         UserDetails userDetails = User.withUsername(user.getEmail())
                 .password(user.getPassword())
-                .roles(user.getRole().name())
+                .authorities(user.getRole().name())
                 .build();
 
-        String token = jwtUtil.generateToken(userDetails, user.getId(), List.of(user.getRole().name()));
+      
+        String token = jwtUtil.generateToken(userDetails, user.getId(), user.getRole().name());
 
         return new AuthResponse(token, user.getRole().name(), user.getName());
     }
 
     private void sendUserToUserService(Long userId, String name, String email, String role) {
         UserRegistrationDto dto = new UserRegistrationDto(userId, name, email, role);
-        userServiceFeignClient.createUser(dto);
+        
+        userServiceFeignClient.createUser(dto, role);
     }
 }

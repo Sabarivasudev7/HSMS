@@ -1,7 +1,5 @@
 package com.hsms.user_service.controller;
 
-import java.util.List;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,34 +18,68 @@ public class CustomerProfileController {
 
     private final CustomerProfileService service;
 
-    @PostMapping("/{id}")
-    public ResponseEntity<CustomerProfileDto> createCustomer(@Valid @PathVariable Long id,@Valid @RequestBody CustomerProfileDto dto) {
-        return ResponseEntity.ok(service.createCustomer(id, dto));
+   
+    @PostMapping
+    public ResponseEntity<?> createCustomer(
+            @Valid @RequestBody CustomerProfileDto dto,
+            @RequestHeader("X-Role") String role,
+            @RequestHeader("X-User-Id") Long userId) {
+
+        if (!"CUSTOMER".equals(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access Denied");
+        }
+        return ResponseEntity.ok(service.createCustomer(userId, dto));
     }
 
+   
     @GetMapping("/{id}")
-    public ResponseEntity<CustomerProfileDto> getCustomer(@PathVariable Long id) {
+    public ResponseEntity<?> getCustomer(
+            @PathVariable Long id,
+            @RequestHeader("X-Role") String role) {
+
+        if (!"ADMIN".equals(role) && !"SERVICE_MANAGER".equals(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access Denied");
+        }
         return ResponseEntity.ok(service.getById(id));
     }
 
+    
     @GetMapping
-    public ResponseEntity<List<CustomerProfileDto>> getAllCustomers() {
+    public ResponseEntity<?> getAllCustomers(@RequestHeader("X-Role") String role) {
+        if (!"ADMIN".equals(role) && !"SERVICE_MANAGER".equals(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access Denied");
+        }
         return ResponseEntity.ok(service.getAll());
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<CustomerProfileDto> updateCustomer(@PathVariable Long id, @Valid @RequestBody CustomerProfileDto dto) {
-        return ResponseEntity.ok(service.update(id, dto));
+
+    @PutMapping
+    public ResponseEntity<?> updateCustomer(
+            @Valid @RequestBody CustomerProfileDto dto,
+            @RequestHeader("X-Role") String role,
+            @RequestHeader("X-User-Id") Long userId) {
+
+        if (!"CUSTOMER".equals(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access Denied");
+        }
+        return ResponseEntity.ok(service.update(userId, dto));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCustomer(@PathVariable Long id) {
-        service.delete(id);
+    
+    @DeleteMapping
+    public ResponseEntity<?> deleteCustomer(
+            @RequestHeader("X-Role") String role,
+            @RequestHeader("X-User-Id") Long userId) {
+
+        if (!"CUSTOMER".equals(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access Denied");
+        }
+        service.delete(userId);
         return ResponseEntity.noContent().build();
     }
+
     @ExceptionHandler(CustomerNotFoundException.class)
     public ResponseEntity<String> handleCustomerNotFound(CustomerNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
-
 }

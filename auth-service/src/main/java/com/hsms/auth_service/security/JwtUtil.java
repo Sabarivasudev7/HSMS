@@ -25,7 +25,7 @@ public class JwtUtil {
         return Keys.hmacShaKeyFor(Decoders.BASE64.decode(secret));
     }
 
-    public String generateToken(UserDetails userDetails, Long userId, List<String> roles) {
+    public String generateToken(UserDetails userDetails, Long userId, String roles) {
         Date now = new Date();
         Date expiry = new Date(now.getTime() + expiration);
         return Jwts.builder()
@@ -47,9 +47,9 @@ public class JwtUtil {
         return claims.get("userId", Long.class);
     }
 
-    public List<String> extractRoles(String token) {
+    public String extractRoles(String token) {
         Claims claims = Jwts.parser().verifyWith(key()).build().parseSignedClaims(token).getPayload();
-        return claims.get("roles", List.class);
+        return claims.get("roles", String.class);
     }
 
     public boolean validateToken(String token, UserDetails userDetails) {

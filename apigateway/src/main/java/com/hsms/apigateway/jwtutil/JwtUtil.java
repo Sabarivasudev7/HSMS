@@ -50,7 +50,7 @@ public class JwtUtil {
     }
     
     @SuppressWarnings("unchecked")
-    public List<String> extractRoles(String token) {
+    public String extractRole(String token) {
 
         Claims claims = Jwts.parser()
                 .verifyWith((SecretKey) getSignKey())
@@ -58,14 +58,6 @@ public class JwtUtil {
                 .parseSignedClaims(token)
                 .getPayload();
 
-        List<?> roles = claims.get("roles", List.class);
-
-        if (roles == null) {
-            return List.of();
-        }
-
-        return roles.stream()
-                .map(String::valueOf)
-                .toList();
+        return claims.get("roles", String.class);
     }
 }
