@@ -1,41 +1,68 @@
 package com.hsms.auth_service.security;
 
 import java.util.Date;
-
+import java.util.List;
 import javax.crypto.SecretKey;
-
-import org.springframework.security.core.userdetails.UserDetails;
-
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+import org.springframework.security.core.userdetails.UserDetails;
 
+@Component
 public class JwtUtil {
 
-    private static final String SECRET = "MySecretKeyMySecretKeyMySecretKey12345";
+    @Value("${app.jwt-secret}")
+    private String secret;
 
-    private static final SecretKey KEY = Keys.hmacShaKeyFor(SECRET.getBytes());
+    @Value("${app.jwt-expiration-milliseconds}")
+    private long expiration;
 
-    public String generateToken(String email) {
-        return Jwts.builder().subject(email).issuedAt(new Date()).expiration(new Date(System.currentTimeMillis() + 86400000)).signWith(KEY).compact();
+    private SecretKey key() {
+        return Keys.hmacShaKeyFor(Decoders.BASE64.decode(secret));
+    }
+
+    public String generateToken(UserDetails userDetails, Long userId, String roles) {
+        Date now = new Date();
+        Date expiry = new Date(now.getTime() + expiration);
+        return Jwts.builder()
+                .subject(userDetails.getUsername())
+                .claim("userId", userId)
+                .claim("roles", roles)
+                .issuedAt(now)
+                .expiration(expiry)
+                .signWith(key())
+                .compact();
     }
 
     public String extractUsername(String token) {
-        return Jwts.parser().verifyWith(KEY).build().parseSignedClaims(token).getPayload().getSubject();
+        return Jwts.parser().verifyWith(key()).build().parseSignedClaims(token).getPayload().getSubject();
+    }
+
+    public Long extractUserId(String token) {
+        Claims claims = Jwts.parser().verifyWith(key()).build().parseSignedClaims(token).getPayload();
+        return claims.get("userId", Long.class);
+    }
+
+    public String extractRoles(String token) {
+        Claims claims = Jwts.parser().verifyWith(key()).build().parseSignedClaims(token).getPayload();
+        return claims.get("roles", String.class);
     }
 
     public boolean validateToken(String token, UserDetails userDetails) {
         try {
             String username = extractUsername(token);
-            Date expiration = Jwts.parser().verifyWith(KEY).build().parseSignedClaims(token).getPayload().getExpiration();
-
-            return (username.equals(userDetails.getUsername()) && !isTokenExpired(expiration));
+            Date expiry = Jwts.parser().verifyWith(key()).build().parseSignedClaims(token).getPayload().getExpiration();
+            return username.equals(userDetails.getUsername()) && !isTokenExpired(expiry);
         } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
     }
 
-    private boolean isTokenExpired(Date expiration) {
-        return expiration.before(new Date());
+    private boolean isTokenExpired(Date expiry) {
+        return expiry.before(new Date());
     }
 }

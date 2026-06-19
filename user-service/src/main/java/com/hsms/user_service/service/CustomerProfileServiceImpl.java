@@ -7,10 +7,12 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import com.hsms.user_service.entity.CustomerProfile;
+import com.hsms.user_service.entity.UserProfile;
 import com.hsms.user_service.exception.CustomerNotFoundException;
+import com.hsms.user_service.exception.RoleMismatchException;
 import com.hsms.user_service.model.CustomerProfileDto;
 import com.hsms.user_service.repository.CustomerProfileRepository;
-
+import com.hsms.user_service.repository.UserProfileRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -19,14 +21,26 @@ import lombok.RequiredArgsConstructor;
 public class CustomerProfileServiceImpl implements CustomerProfileService {
 
     private final CustomerProfileRepository repository;
+    private final UserProfileRepository userProfileRepository;
     private final ModelMapper mapper;
 
     @Override
     public CustomerProfileDto createCustomer(Long userId, CustomerProfileDto dto) {
+       
+        UserProfile userProfile = userProfileRepository.findById(userId).orElseThrow(() -> new CustomerNotFoundException("User with id " + userId + " not found"));
+       
+        if (!"CUSTOMER".equalsIgnoreCase(userProfile.getRole())) {
+            throw new RoleMismatchException(
+                "You are trying to create a Customer profile, but the registered role is " + userProfile.getRole()
+            );
+        }
         CustomerProfile customer = mapper.map(dto, CustomerProfile.class);
-        customer.setCustomerId(userId); 
+        customer.setCustomerId(userId);
+        customer.setUserProfile(userProfile); 
+
         return mapper.map(repository.save(customer), CustomerProfileDto.class);
     }
+
 
     @Override
     public CustomerProfileDto getById(Long id) {
@@ -43,12 +57,7 @@ public class CustomerProfileServiceImpl implements CustomerProfileService {
     public CustomerProfileDto update(Long id, CustomerProfileDto dto) {
         CustomerProfile customer = repository.findById(id).orElseThrow(() -> new CustomerNotFoundException("Customer with id " + id + " not found"));
 
-        customer.setName(dto.getName());
-        customer.setPhone(dto.getPhone());
-        customer.setAddress(dto.getAddress());
-        customer.setCity(dto.getCity());
-        customer.setPincode(dto.getPincode());
-
+        mapper.map(dto, customer); 
         return mapper.map(repository.save(customer), CustomerProfileDto.class);
     }
 
