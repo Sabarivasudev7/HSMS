@@ -20,92 +20,66 @@ import com.hsms.notificationservice.repository.NotificationRepository;
 @Service
 public class NotificationServiceImpl implements NotificationService {
 
-	
-    @Autowired
-    private NotificationRepository notificationRepo;
-    
-    @Autowired
-    private JavaMailSender mailSender;
+	@Autowired
+	private NotificationRepository notificationRepo;
 
-    
-    
-    @Override
-    public NotificationResponseDTO createNotification(NotificationRequestDTO requestDTO) {
+	@Autowired
+	private JavaMailSender mailSender;
 
-        Notification notification = new Notification();
+	@Override
+	public NotificationResponseDTO createNotification(NotificationRequestDTO requestDTO) {
 
-        notification.setServiceRequestId(requestDTO.getServiceRequestId());
-        notification.setRecipientEmail(requestDTO.getRecipientEmail());
-        notification.setSubject(requestDTO.getSubject());
-        notification.setMessage(requestDTO.getMessage());
-        notification.setNotificationType(requestDTO.getNotificationType());
+		Notification notification = new Notification();
 
-        try {
+		notification.setServiceRequestId(requestDTO.getServiceRequestId());
+		notification.setRecipientEmail(requestDTO.getRecipientEmail());
+		notification.setSubject(requestDTO.getSubject());
+		notification.setMessage(requestDTO.getMessage());
+		notification.setNotificationType(requestDTO.getNotificationType());
 
-            SimpleMailMessage mail = new SimpleMailMessage();
+		SimpleMailMessage mail = new SimpleMailMessage();
 
-            mail.setTo( requestDTO.getRecipientEmail());
-            mail.setSubject(requestDTO.getSubject());
-            mail.setText(requestDTO.getMessage());
+		mail.setTo(requestDTO.getRecipientEmail());
+		mail.setSubject(requestDTO.getSubject());
+		mail.setText(requestDTO.getMessage());
 
-            mailSender.send(mail);
+		mailSender.send(mail);
 
-            notification.setStatus(NotificationStatus.SENT);
+		notification.setStatus(NotificationStatus.SENT);
+		notification.setSentAt(LocalDateTime.now());
 
-        }
-        catch (Exception ex) {
-            notification.setStatus(NotificationStatus.FAILED);
-            throw new NotificationFailedException( "Unable to send email");
-        }
+		Notification saved = notificationRepo.save(notification);
 
-        notification.setSentAt(LocalDateTime.now());
+		return new NotificationResponseDTO(saved.getNotificationId(), saved.getServiceRequestId(),
+				saved.getRecipientEmail(), saved.getStatus(), saved.getSentAt());
+	}
 
-        Notification saved = notificationRepo.save(notification);
-        return new NotificationResponseDTO(
-                saved.getNotificationId(),
-                saved.getServiceRequestId(),
-                saved.getRecipientEmail(),
-                saved.getStatus(),
-                saved.getSentAt());
-    }
+	@Override
+	public NotificationResponseDTO getNotificationById(Long notificationId) {
 
-    
-    
-    @Override
-    public NotificationResponseDTO getNotificationById(Long notificationId) {
+		Notification notification = notificationRepo.findById(notificationId)
+				.orElseThrow(() -> new NotificationNotFoundException("Notification Not Found"));
 
-    	Notification notification = notificationRepo.findById(notificationId).orElseThrow(() -> new NotificationNotFoundException("Notification Not Found"));
+		return new NotificationResponseDTO(notification.getNotificationId(), notification.getServiceRequestId(),
+				notification.getRecipientEmail(), notification.getStatus(), notification.getSentAt());
+	}
 
-        return new NotificationResponseDTO(
-                notification.getNotificationId(),
-                notification.getServiceRequestId(),
-                notification.getRecipientEmail(),
-                notification.getStatus(),
-                notification.getSentAt());
-    }
+	@Override
+	public List<NotificationResponseDTO> getAllNotifications() {
 
-    
-    
-    @Override
-    public List<NotificationResponseDTO> getAllNotifications() {
+		return notificationRepo.findAll().stream()
+				.map(notification -> new NotificationResponseDTO(notification.getNotificationId(),
+						notification.getServiceRequestId(), notification.getRecipientEmail(), notification.getStatus(),
+						notification.getSentAt()))
+				.collect(Collectors.toList());
+	}
 
-        return notificationRepo.findAll().stream().map(notification ->
-        		new NotificationResponseDTO(
-                notification.getNotificationId(),
-                notification.getServiceRequestId(),
-                notification.getRecipientEmail(),
-                notification.getStatus(),
-                notification.getSentAt()))
-                .collect(Collectors.toList());
-    }
+	@Override
+	public String deleteNotification(Long notificationId) {
 
-    
-    
-    @Override
-    public String deleteNotification(Long notificationId) {
-
-        Notification notification = notificationRepo.findById(notificationId).orElseThrow(() -> new NotificationNotFoundException("Notification Not Found"));
-        notificationRepo.delete(notification);
-        return "Notification Deleted Successfully";
-    }
+		Notification notification = notificationRepo.findById(notificationId)
+				.orElseThrow(() -> new NotificationNotFoundException("Notification Not Found"));
+		notificationRepo.delete(notification);
+		return "Notification Deleted Successfully";
+	}
 }

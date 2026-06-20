@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.MailException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -13,29 +14,34 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
 
 	@ExceptionHandler(NotificationNotFoundException.class)
-    public ResponseEntity<Map<String, Object>> handleNotificationNotFoundException(NotificationNotFoundException ex) {
+	public ResponseEntity<Map<String, Object>> handleNotificationNotFoundException(NotificationNotFoundException ex) {
 
-        Map<String, Object> response = new HashMap<>();
+		Map<String, Object> response = new HashMap<>();
 
-        response.put("timestamp", LocalDateTime.now());
-        response.put("status", HttpStatus.NOT_FOUND.value());
-        response.put("error", "Notification Not Found");
-        response.put("message", ex.getMessage());
+		response.put("timestamp", LocalDateTime.now());
+		response.put("status", HttpStatus.NOT_FOUND.value());
+		response.put("error", "Notification Not Found");
+		response.put("message", ex.getMessage());
 
-        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-    }
-	
-	
-	@ExceptionHandler(NotificationFailedException.class)
-	public ResponseEntity<Map<String,Object>> handleNotificationFailedException(NotificationFailedException ex){
-
-	    Map<String,Object> response = new HashMap<>();
-
-	    response.put("timestamp", LocalDateTime.now());
-	    response.put("status", HttpStatus.BAD_REQUEST.value());
-	    response.put("error", "Notification Failed");
-	    response.put("message", ex.getMessage());
-
-	    return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+		return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
 	}
+
+	@ExceptionHandler(NotificationFailedException.class)
+	public ResponseEntity<Map<String, Object>> handleNotificationFailedException(NotificationFailedException ex) {
+
+		Map<String, Object> response = new HashMap<>();
+
+		response.put("timestamp", LocalDateTime.now());
+		response.put("status", HttpStatus.BAD_REQUEST.value());
+		response.put("error", "Notification Failed");
+		response.put("message", ex.getMessage());
+
+		return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+	}
+
+	@ExceptionHandler(MailException.class)
+	public ResponseEntity<String> handleMailException(MailException ex) {
+		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unable to send email");
+	}
+
 }
