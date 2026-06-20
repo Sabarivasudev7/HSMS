@@ -1,7 +1,6 @@
 package com.hsms.user_service.controller;
 
-import java.util.List;
-
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,30 +17,63 @@ public class TechnicianProfileController {
 
     private final TechnicianProfileService service;
 
-    @PostMapping("/{id}")
-    public ResponseEntity<TechnicianProfileDto> createTechnician(@PathVariable Long id,@Valid @RequestBody TechnicianProfileDto dto) {
-        return ResponseEntity.ok(service.createTechnician(id, dto));
+   
+    @PostMapping
+    public ResponseEntity<?> createTechnician(
+            @Valid @RequestBody TechnicianProfileDto dto,
+            @RequestHeader("X-Role") String role,
+            @RequestHeader("X-User-Id") Long userId) {
+
+        if (!"TECHNICIAN".equals(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access Denied");
+        }
+        return ResponseEntity.ok(service.createTechnician(userId, dto));
     }
 
+    
     @GetMapping("/{id}")
-    public ResponseEntity<TechnicianProfileDto> getTechnician(@PathVariable Long id) {
+    public ResponseEntity<?> getTechnician(
+            @PathVariable Long id,
+            @RequestHeader("X-Role") String role) {
+
+        if (!"ADMIN".equals(role) && !"SERVICE_MANAGER".equals(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access Denied");
+        }
         return ResponseEntity.ok(service.getById(id));
     }
 
+   
     @GetMapping
-    public ResponseEntity<List<TechnicianProfileDto>> getAllTechnicians() {
+    public ResponseEntity<?> getAllTechnicians(@RequestHeader("X-Role") String role) {
+        if (!"ADMIN".equals(role) && !"SERVICE_MANAGER".equals(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access Denied");
+        }
         return ResponseEntity.ok(service.getAll());
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<TechnicianProfileDto> updateTechnician(@PathVariable Long id,
-                                                                 @Valid @RequestBody TechnicianProfileDto dto) {
-        return ResponseEntity.ok(service.update(id, dto));
+    
+    @PutMapping
+    public ResponseEntity<?> updateTechnician(
+            @Valid @RequestBody TechnicianProfileDto dto,
+            @RequestHeader("X-Role") String role,
+            @RequestHeader("X-User-Id") Long userId) {
+
+        if (!"TECHNICIAN".equals(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access Denied");
+        }
+        return ResponseEntity.ok(service.update(userId, dto));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteTechnician(@PathVariable Long id) {
-        service.delete(id);
+    
+    @DeleteMapping
+    public ResponseEntity<?> deleteTechnician(
+            @RequestHeader("X-Role") String role,
+            @RequestHeader("X-User-Id") Long userId) {
+
+        if (!"TECHNICIAN".equals(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access Denied");
+        }
+        service.delete(userId);
         return ResponseEntity.noContent().build();
     }
 }

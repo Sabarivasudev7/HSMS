@@ -13,6 +13,7 @@ import cap_stone_project.booking_service.Enum.BookingStatus;
 import cap_stone_project.booking_service.entity.Booking;
 import cap_stone_project.booking_service.exception.BookingNotFoundException;
 import cap_stone_project.booking_service.exception.InvalidBookingStateException;
+import cap_stone_project.booking_service.exception.ServiceUnavailableException;
 import cap_stone_project.booking_service.feignclient.CategoryFeignClient;
 import cap_stone_project.booking_service.feignclient.CustomerFeignClient;
 import cap_stone_project.booking_service.model.BookingRequestDTO;
@@ -21,6 +22,7 @@ import cap_stone_project.booking_service.model.BookingUpdateDTO;
 import cap_stone_project.booking_service.model.CategoryResponseDTO;
 import cap_stone_project.booking_service.model.CustomerResponseDTO;
 import cap_stone_project.booking_service.repository.BookingRepository;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 
 @Service
 public class BookingServiceImpl implements BookingService{
@@ -41,6 +43,7 @@ public class BookingServiceImpl implements BookingService{
 	
 	// Create Booking 
 	@Override
+	@CircuitBreaker(name = "bookingService", fallbackMethod = "createBookingFallback")
 	public BookingResponseDTO createBooking(BookingRequestDTO bookingRequestDTO) {
 		CategoryResponseDTO cate = cateFeignClient.getCategoryById(bookingRequestDTO.getCategoryId());
 		if (cate == null) {
@@ -63,6 +66,10 @@ public class BookingServiceImpl implements BookingService{
 		Booking saveBooking = bookingRepo.save(booking);
 		
 		return modelMapper.map(saveBooking, BookingResponseDTO.class );
+	}
+	
+	public BookingResponseDTO createBookingFallback(BookingRequestDTO bookingRequestDTO, Exception ex) {
+		throw new ServiceUnavailableException("Category Service or Customer Service is currently unavailable. Please try again later.");
 	}
 
 	
@@ -117,7 +124,7 @@ public class BookingServiceImpl implements BookingService{
 	@Override
 	public List<BookingResponseDTO> showAllBookings() {
 		List<Booking> bookingList = bookingRepo.findAllByOrderByRequestIdDesc();
-		return bookingList.stream().map(booking -> modelMapper.map(booking, BookingResponseDTO.class)).toList();
+		return bookingList.stream().map(b -> modelMapper.map(b, BookingResponseDTO.class)).toList();
 	}
 
 
@@ -125,83 +132,33 @@ public class BookingServiceImpl implements BookingService{
 	// Find Booking Service By Customer Id
 	@Override
 	public Page<BookingResponseDTO> getBookingsByCustomer(Long customerId, Pageable pageable) {
-		return bookingRepo.findByCustomerId(customerId, pageable).map(booking -> modelMapper.map(booking,  BookingResponseDTO.class));
+		return bookingRepo.findByCustomerId(customerId, pageable).map(b -> modelMapper.map(b,  BookingResponseDTO.class));
 	}
 
 
 
-	// Technician can accept assigned jobs
-	// Status updated to ACCEPTED
+	// Updating Booking Status used by FeignClient
 	@Override
-	public String acceptBooking(Long requestId) {
+	public BookingResponseDTO updateBookingStatus(Long requestId, BookingStatus status) {
 		Booking booking = bookingRepo.findById(requestId).orElseThrow(() -> new BookingNotFoundException("Booking " + requestId + " not found"));
-		if (booking.getStatus() != BookingStatus.ASSIGNED) {
-			throw new InvalidBookingStateException("Only ASSIGNED bookings can be accepted");
-		}
-		booking.setStatus(BookingStatus.ACCEPTED);
-		bookingRepo.save(booking);
-		return "Booking Accepted Successfully";
+		booking.setStatus(status);
+		Booking updateBooking = bookingRepo.save(booking);
+		return modelMapper.map(updateBooking, BookingResponseDTO.class);
 	}
 
 
 
-	// Technician can reject assigned jobs
-	// Status updated to REJECTED
-	@Override
-	public String rejectBooking(Long requestId) {
 
-	    Booking booking = bookingRepo.findById(requestId).orElseThrow(() -> new BookingNotFoundException("Booking " + requestId + " not found"));
-
-	    if (booking.getStatus() != BookingStatus.ASSIGNED) {
-	        throw new InvalidBookingStateException("Only ASSIGNED bookings can be rejected");
-	    }
-	    booking.setStatus(BookingStatus.REJECTED);
-	    bookingRepo.save(booking);
-	    return "Booking Rejected Successfully";
-	}
-
-
-
-	// Only ACCEPTED requests can be started
-	// Status changes to IN_PROGRESS
-	@Override
-	public String startService(Long requestId) {
-	    Booking booking = bookingRepo.findById(requestId).orElseThrow(() -> new BookingNotFoundException("Booking " + requestId + " not found"));
-	    if (booking.getStatus() != BookingStatus.ACCEPTED) {
-	        throw new InvalidBookingStateException("Only ACCEPTED bookings can start service");
-	    }
-	    booking.setStatus(BookingStatus.IN_PROGRESS);
-	    bookingRepo.save(booking);
-	    return "Service Started Successfully";
-	}
-
-
-
-	// Only IN_PROGRESS requests can be completed
-	// Status changes to COMPLETED
-	@Override
-	public String completeService(Long requestId) {
-	    Booking booking = bookingRepo.findById(requestId).orElseThrow(() -> new BookingNotFoundException("Booking " + requestId + " not found"));
-
-	    if (booking.getStatus() != BookingStatus.IN_PROGRESS) {
-	        throw new InvalidBookingStateException("Only IN_PROGRESS bookings can be completed");
-	    }
-	    booking.setStatus(BookingStatus.COMPLETED);
-	    bookingRepo.save(booking);
-	    return "Service Completed Successfully";
-	}
-
-	// When Assignment-Service assigns a technician: Booking Status -> CREATED -> ASSIGNED
 	@Override
 	public String markAsAssigned(Long requestId) {
-	    Booking booking = bookingRepo.findById(requestId).orElseThrow(() -> new BookingNotFoundException("Booking " + requestId + " not found"));
-	    if (booking.getStatus() != BookingStatus.CREATED) {
-	        throw new InvalidBookingStateException("Only CREATED bookings can be ASSIGNED");
-	    }
-	    booking.setStatus(BookingStatus.ASSIGNED);
-	    bookingRepo.save(booking);
-	    return "Service Assigned Successfully";
+		Booking booking = bookingRepo.findById(requestId).orElseThrow(() -> new BookingNotFoundException("Booking not found"));
+		booking.setStatus(BookingStatus.ASSIGNED);
+		bookingRepo.save(booking);
+		return "Booking Assigned Successfully";
 	}
+
+
+
 	
 	
 }

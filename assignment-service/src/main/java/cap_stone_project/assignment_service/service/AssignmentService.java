@@ -10,6 +10,19 @@ public interface AssignmentService {
     AssignmentResponseDTO assignTechnician(AssignmentRequestDTO dto);
 
     AssignmentResponseDTO findAssignmentById(Long assignmentId);
-
+    
     List<AssignmentResponseDTO> getAssignmentsByTechnician(Long technicianId);
+    
+    List<AssignmentResponseDTO> getShowAllAssignment();
+    
+
+	String acceptBooking(Long requestId);
+	
+	String rejectBooking(Long requestId);
+	
+	String startService(Long requestId);
+	
+	String completeService(Long requestId);
+   
+    
 }

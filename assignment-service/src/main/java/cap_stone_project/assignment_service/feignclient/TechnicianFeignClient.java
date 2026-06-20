@@ -10,6 +10,6 @@ import cap_stone_project.assignment_service.model.TechnicianResponseDTO;
 @FeignClient(name="USER-SERVICE")
 public interface TechnicianFeignClient {
 
-    @GetMapping("/api/technician/{technicianId}")
+    @GetMapping("/api/technicians/{technicianId}")
     TechnicianResponseDTO getTechnicianById(@PathVariable Long technicianId);
 }

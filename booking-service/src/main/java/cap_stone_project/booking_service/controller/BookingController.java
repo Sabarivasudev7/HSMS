@@ -13,8 +13,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import cap_stone_project.booking_service.Enum.BookingStatus;
 import cap_stone_project.booking_service.model.BookingRequestDTO;
 import cap_stone_project.booking_service.model.BookingResponseDTO;
 import cap_stone_project.booking_service.model.BookingUpdateDTO;
@@ -69,11 +71,11 @@ public class BookingController {
     // Show All Bookings
     @GetMapping("/all")
     public ResponseEntity<List<BookingResponseDTO>> showAllBookings() {
-
         return ResponseEntity.status(HttpStatus.SC_OK).body(bookingService.showAllBookings());
     }
     
     
+    // Get Customer Booking Details
     @GetMapping("/customer/{customerId}")
     public ResponseEntity<Page<BookingResponseDTO>> getCustomerBookings(@PathVariable Long customerId, Pageable pageable) {
         return ResponseEntity.status(HttpStatus.SC_OK).body(bookingService.getBookingsByCustomer(customerId, pageable));
@@ -81,46 +83,16 @@ public class BookingController {
     
     
     
-    // Technician can accept assigned jobs
- 	// Status updated to ACCEPTED
-    @PutMapping("/accept/{requestId}")
-    public ResponseEntity<String> acceptBooking(@PathVariable Long requestId) {
-        return ResponseEntity.ok(bookingService.acceptBooking(requestId));
+    // Update Booking Status
+    @PutMapping("/status/{requestId}")
+    public ResponseEntity<BookingResponseDTO> updateBookingStatus(@PathVariable Long requestId, @RequestParam BookingStatus status) {
+    	return ResponseEntity.status(HttpStatus.SC_OK).body(bookingService.updateBookingStatus(requestId, status));
     }
- 	
-
-
-
- 	// Technician can reject assigned jobs
- 	// Status updated to REJECTED
-    @PutMapping("/reject/{requestId}")
-    public ResponseEntity<String> rejectBooking(@PathVariable Long requestId) {
-        return ResponseEntity.ok(bookingService.rejectBooking(requestId));
-    }
-
-
-
- 	// Only ACCEPTED requests can be started
- 	// Status changes to IN_PROGRESS
-    @PutMapping("/start/{requestId}")
-    public ResponseEntity<String> startService(@PathVariable Long requestId) {
-        return ResponseEntity.ok(bookingService.startService(requestId));
-    }
-
-
-
- 	// Only IN_PROGRESS requests can be completed
- 	// Status changes to COMPLETED
-    @PutMapping("/complete/{requestId}")
-    public ResponseEntity<String> completeService(@PathVariable Long requestId) {
-        return ResponseEntity.ok(bookingService.completeService(requestId));
-    }
-
     
     
-    // When Assignment-Service assigns a technician: Booking Status -> CREATED -> ASSIGNED
+    // Mark As Assigned to the Booking Status
     @PutMapping("/assign/{requestId}")
-    public ResponseEntity<String> markAssigned(@PathVariable Long requestId) {
+    public ResponseEntity<String> markAsAssigned(@PathVariable Long requestId) {
     	return ResponseEntity.status(HttpStatus.SC_OK).body(bookingService.markAsAssigned(requestId));
     }
 

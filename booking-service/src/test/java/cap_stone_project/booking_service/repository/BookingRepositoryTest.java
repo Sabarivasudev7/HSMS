@@ -28,7 +28,7 @@ public class BookingRepositoryTest {
 	// Find By Customer Id
 	@Test
 	void testFindByCustomerId() {
-		Booking booking = new Booking(null, null, null, "Plumbing", BookingStatus.CREATED, "Hyd", LocalDateTime.now().plusDays(1), LocalDateTime.now(), 1L, 101L, "CREATED");
+		Booking booking = new Booking(null, "Plumbing", BookingStatus.CREATED, "Hyd", LocalDateTime.now().plusDays(1), LocalDateTime.now(), 1L, 101L, "CREATED");
 		bookingRepo.save(booking);
 		
 		Pageable pageable = PageRequest.of(0,10);
@@ -41,7 +41,7 @@ public class BookingRepositoryTest {
 	// Find By Status
 	@Test
 	void testFindByStatus() {
-		Booking booking = new Booking(null, null, null, "Cleaning", BookingStatus.CREATED, "Vijayawada", 
+		Booking booking = new Booking(null, "Cleaning", BookingStatus.CREATED, "Vijayawada", 
 				LocalDateTime.now().plusDays(1), LocalDateTime.now(), 2L, 102L, "CREATED");
 		bookingRepo.save(booking);
 		List<Booking> result = bookingRepo.findByStatus(BookingStatus.CREATED);
@@ -54,7 +54,7 @@ public class BookingRepositoryTest {
 	// Find By Id
 	@Test
 	void testFindById() {
-		Booking booking = new Booking(null, null, null, "Electrical", BookingStatus.CREATED, "Kakinada", 
+		Booking booking = new Booking(null, "Electrical", BookingStatus.CREATED, "Kakinada", 
 				LocalDateTime.now().plusDays(1), LocalDateTime.now(), 3L, 132L, "CREATED");
 		Booking saved = bookingRepo.save(booking);
 		Optional<Booking> result = bookingRepo.findById(saved.getRequestId());
