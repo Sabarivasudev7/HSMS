@@ -6,6 +6,8 @@ import com.feedback_service.dto.FeedbackRequestDTO;
 import com.feedback_service.dto.FeedbackResponseDTO;
 
 public interface FeedbackService {
+
     FeedbackResponseDTO submitFeedback(FeedbackRequestDTO request);
+
     List<FeedbackResponseDTO> getFeedbackByRequest(Long requestId);
 }

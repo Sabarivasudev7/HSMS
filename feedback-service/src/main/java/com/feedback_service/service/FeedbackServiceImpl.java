@@ -1,25 +1,22 @@
 package com.feedback_service.service;
 
-
-
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.feedback_service.dto.FeedbackRequestDTO;
 import com.feedback_service.dto.FeedbackResponseDTO;
 import com.feedback_service.entity.Feedback;
+import com.feedback_service.exception.FeedbackNotFoundException;
 import com.feedback_service.repository.FeedbackRepository;
-import com.feedback_service.service.FeedbackService;
-
-import lombok.RequiredArgsConstructor;
 
 @Service
-@RequiredArgsConstructor
 public class FeedbackServiceImpl implements FeedbackService {
 
-    private final FeedbackRepository feedbackRepository;
+    @Autowired
+    private FeedbackRepository feedbackRepository;
 
     @Override
     public FeedbackResponseDTO submitFeedback(FeedbackRequestDTO request) {
@@ -29,29 +26,37 @@ public class FeedbackServiceImpl implements FeedbackService {
         feedback.setRating(request.getRating());
         feedback.setComments(request.getComments());
 
-        Feedback saved = feedbackRepository.save(feedback);
+        Feedback savedFeedback = feedbackRepository.save(feedback);
 
-        return mapToResponse(saved);
+        FeedbackResponseDTO response = new FeedbackResponseDTO();
+        response.setId(savedFeedback.getId());
+        response.setServiceRequestId(savedFeedback.getServiceRequestId());
+        response.setRating(savedFeedback.getRating());
+        response.setComments(savedFeedback.getComments());
+
+        return response;
     }
 
     @Override
     public List<FeedbackResponseDTO> getFeedbackByRequest(Long requestId) {
 
-        return feedbackRepository.findByServiceRequestId(requestId)
-                .stream()
-                .map(this::mapToResponse)
+        List<Feedback> feedbackList =
+                feedbackRepository.findByServiceRequestId(requestId);
+
+        if (feedbackList.isEmpty()) {
+            throw new FeedbackNotFoundException(
+                    "No feedback found for service request id: " + requestId);
+        }
+
+        return feedbackList.stream()
+                .map(feedback -> {
+                    FeedbackResponseDTO dto = new FeedbackResponseDTO();
+                    dto.setId(feedback.getId());
+                    dto.setServiceRequestId(feedback.getServiceRequestId());
+                    dto.setRating(feedback.getRating());
+                    dto.setComments(feedback.getComments());
+                    return dto;
+                })
                 .collect(Collectors.toList());
-    }
-
-    private FeedbackResponseDTO mapToResponse(Feedback feedback) {
-
-        FeedbackResponseDTO response = new FeedbackResponseDTO();
-
-        response.setId(feedback.getId());
-        response.setServiceRequestId(feedback.getServiceRequestId());
-        response.setRating(feedback.getRating());
-        response.setComments(feedback.getComments());
-
-        return response;
     }
 }
