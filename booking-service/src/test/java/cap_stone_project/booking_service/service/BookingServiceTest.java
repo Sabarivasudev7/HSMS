@@ -50,7 +50,7 @@ public class BookingServiceTest {
 	// Create Booking
 	@Test
 	void testCreateBooking() {
-		BookingRequestDTO dto = new BookingRequestDTO( 101L, 1L, "Plumbing", "Hyd", LocalDateTime.now().plusDays(1), null, null);
+		BookingRequestDTO dto = new BookingRequestDTO( 101L, 1L, "Plumbing", "Hyd", LocalDateTime.now().plusDays(1));
 		CategoryResponseDTO category = new CategoryResponseDTO(1L,"Plumbing","Pipe Work", 500, true);
 		CustomerResponseDTO customer = new CustomerResponseDTO(101L, "Ali", "9999999999", "Hyd", "Hyd");
 

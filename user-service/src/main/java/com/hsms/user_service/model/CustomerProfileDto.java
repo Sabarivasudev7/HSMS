@@ -18,10 +18,6 @@ public class CustomerProfileDto {
    
     private Long customerId;
 
-    @NotBlank(message = "Name is required")
-    @Size(min = 2, max = 50, message = "Name must be between 2 and 50 characters")
-    private String name;
-
     @NotBlank(message = "Phone number is required")
     @Pattern(regexp = "^[7-9][0-9]{9}$", message = "Phone number must be 10 digits starting with 7, 8, or 9")
     private String phone;

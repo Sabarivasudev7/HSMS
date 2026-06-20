@@ -9,8 +9,7 @@ import org.springframework.stereotype.Repository;
 import cap_stone_project.assignment_service.entity.Assignment;
 
 @Repository
-public interface AssignmentRepository
-        extends JpaRepository<Assignment, Long>{
+public interface AssignmentRepository extends JpaRepository<Assignment, Long>{
 
     Optional<Assignment> findByServiceRequestId(Long serviceRequestId);
 

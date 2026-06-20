@@ -20,4 +20,13 @@ public interface PaymentService {
                                      PaymentRequestDTO requestDTO);
 
     void deletePayment(Long paymentId);
+    
+    // I'm Alisha I added this below operation 
+    // if you think it is not required just remove it 
+    // but atleast check it.
+//    makePayment()
+//
+//    findPaymentById()
+//
+//    getPaymentsByCustomer()
 }

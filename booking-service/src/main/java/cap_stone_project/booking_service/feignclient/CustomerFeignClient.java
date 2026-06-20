@@ -10,7 +10,8 @@ import cap_stone_project.booking_service.model.CustomerResponseDTO;
 public interface CustomerFeignClient {
 	
 	
-	@GetMapping("/api/customer/{customerId}")
+	@GetMapping("/api/customers/{customerId}")
 	CustomerResponseDTO findCustomerById(@PathVariable Long customerId);
 
 }
+

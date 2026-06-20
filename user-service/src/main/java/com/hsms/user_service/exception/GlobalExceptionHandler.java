@@ -12,40 +12,51 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-	
+
 	@ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<String> handleUserNotFound(UserNotFoundException ex) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
-    }
+	public ResponseEntity<String> handleUserNotFound(UserNotFoundException ex) {
+		return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
+	}
 
-    @ExceptionHandler(CustomerNotFoundException.class)
-    public ResponseEntity<Map<String, String>> handleCustomerNotFound(CustomerNotFoundException ex) {
-        Map<String, String> err = new HashMap<>();
-        err.put("message", ex.getMessage());
-        return new ResponseEntity<>(err, HttpStatus.NOT_FOUND);
-    }
+	@ExceptionHandler(CustomerNotFoundException.class)
+	public ResponseEntity<Map<String, String>> handleCustomerNotFound(CustomerNotFoundException ex) {
+		Map<String, String> err = new HashMap<>();
+		err.put("message", ex.getMessage());
+		return new ResponseEntity<>(err, HttpStatus.NOT_FOUND);
+	}
 
-    @ExceptionHandler(TechnicianNotFoundException.class)
-    public ResponseEntity<Map<String, String>> handleTechnicianNotFound(TechnicianNotFoundException ex) {
-        Map<String, String> err = new HashMap<>();
-        err.put("message", ex.getMessage());
-        return new ResponseEntity<>(err, HttpStatus.NOT_FOUND);
-    }
-    
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
-        Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getAllErrors().forEach((error) -> {
-            String fieldName = ((FieldError) error).getField();
-            String errorMessage = error.getDefaultMessage();
-            errors.put(fieldName, errorMessage);
-        });
-        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
-    }
-    @ExceptionHandler(io.github.resilience4j.ratelimiter.RequestNotPermitted.class)
-    public ResponseEntity<Map<String, String>> handleRateLimiter(Exception ex) {
-        Map<String, String> err = new HashMap<>();
-        err.put("error", "Too many requests! Please calm down and try again later.");
-        return new ResponseEntity<>(err, HttpStatus.TOO_MANY_REQUESTS);
-    }
+	@ExceptionHandler(TechnicianNotFoundException.class)
+	public ResponseEntity<Map<String, String>> handleTechnicianNotFound(TechnicianNotFoundException ex) {
+		Map<String, String> err = new HashMap<>();
+		err.put("message", ex.getMessage());
+		return new ResponseEntity<>(err, HttpStatus.NOT_FOUND);
+	}
+
+	@ExceptionHandler(RoleMismatchException.class)
+	public ResponseEntity<Map<String, String>> handleRoleMismatch(RoleMismatchException ex) {
+		Map<String, String> response = new HashMap<>();
+		response.put("error", "Role Mismatch");
+		response.put("message", ex.getMessage());
+		return ResponseEntity.badRequest().body(response);
+	}
+
+	
+
+	@ExceptionHandler(MethodArgumentNotValidException.class)
+	public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
+		Map<String, String> errors = new HashMap<>();
+		ex.getBindingResult().getAllErrors().forEach((error) -> {
+			String fieldName = ((FieldError) error).getField();
+			String errorMessage = error.getDefaultMessage();
+			errors.put(fieldName, errorMessage);
+		});
+		return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+	}
+
+	@ExceptionHandler(io.github.resilience4j.ratelimiter.RequestNotPermitted.class)
+	public ResponseEntity<Map<String, String>> handleRateLimiter(Exception ex) {
+		Map<String, String> err = new HashMap<>();
+		err.put("error", "Too many requests! Please calm down and try again later.");
+		return new ResponseEntity<>(err, HttpStatus.TOO_MANY_REQUESTS);
+	}
 }
