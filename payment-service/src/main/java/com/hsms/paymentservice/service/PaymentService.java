@@ -10,16 +10,16 @@ import com.hsms.paymentservice.dto.PaymentResponseDTO;
 import com.hsms.paymentservice.enums.PaymentStatus;
 
 public interface PaymentService {
-	
-	
-	
-	PaymentResponseDTO createPayment( PaymentRequestDTO dto);
+
+	PaymentResponseDTO createPayment(String token, PaymentRequestDTO dto);
 
 	PaymentResponseDTO getPaymentById(Long paymentId);
 
-	Page<PaymentResponseDTO> getPaymentsByCustomer( Long customerId, Pageable pageable);
+	Page<PaymentResponseDTO> getPaymentsByCustomer(Long customerId, Pageable pageable);
 
-	PaymentResponseDTO updatePaymentStatus(Long paymentId, PaymentStatus status);
+	PaymentResponseDTO updatePaymentStatus(String token, Long paymentId, PaymentStatus status);
+
+	PaymentResponseDTO getPaymentByServiceRequestId(Long serviceRequestId);
 
 	List<PaymentResponseDTO> showAllPayments();
 
