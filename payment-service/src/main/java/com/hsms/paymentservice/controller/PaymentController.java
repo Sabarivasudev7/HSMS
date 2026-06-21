@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -28,71 +29,62 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/payments")
 public class PaymentController {
 
-@Autowired
-private PaymentService paymentService;
+	@Autowired
+	private PaymentService paymentService;
 
 // Create Payment
-@PostMapping("/save")
-public ResponseEntity<PaymentResponseDTO> createPayment(
-        @Valid @RequestBody PaymentRequestDTO dto) {
+	@PostMapping("/save")
+	public ResponseEntity<PaymentResponseDTO> createPayment(
+			@RequestHeader("Authorization") String token,
+			@Valid @RequestBody PaymentRequestDTO dto) {
 
-    return ResponseEntity.status(HttpStatus.CREATED)
-            .body(paymentService.createPayment(dto));
-}
+		return ResponseEntity.status(HttpStatus.CREATED).body(paymentService.createPayment(token, dto));
+	}
 
 // Get Payment By Id
-@GetMapping("/{paymentId}")
-public ResponseEntity<PaymentResponseDTO> getPaymentById(
-        @PathVariable Long paymentId) {
+	@GetMapping("/{paymentId}")
+	public ResponseEntity<PaymentResponseDTO> getPaymentById(@PathVariable Long paymentId) {
 
-    return ResponseEntity.status(HttpStatus.OK)
-            .body(paymentService.getPaymentById(paymentId));
-}
+		return ResponseEntity.status(HttpStatus.OK).body(paymentService.getPaymentById(paymentId));
+	}
 
 // Get Payments By Customer
-@GetMapping("/customer/{customerId}")
-public ResponseEntity<Page<PaymentResponseDTO>>
-        getPaymentsByCustomer(
-                @PathVariable Long customerId,
-                Pageable pageable) {
+	@GetMapping("/customer/{customerId}")
+	public ResponseEntity<Page<PaymentResponseDTO>> getPaymentsByCustomer(@PathVariable Long customerId,
+			Pageable pageable) {
 
-    return ResponseEntity.status(HttpStatus.OK)
-            .body(paymentService.getPaymentsByCustomer(
-                    customerId,
-                    pageable));
-}
+		return ResponseEntity.status(HttpStatus.OK).body(paymentService.getPaymentsByCustomer(customerId, pageable));
+	}
 
 // Update Payment Status
-@PutMapping("/status/{paymentId}")
-public ResponseEntity<PaymentResponseDTO>
-        updatePaymentStatus(
-                @PathVariable Long paymentId,
-                @RequestParam PaymentStatus status) {
+	@PutMapping("/status/{paymentId}")
+	public ResponseEntity<PaymentResponseDTO> updatePaymentStatus(
+			@RequestHeader("Authorization") String token,
+			@PathVariable Long paymentId,
+			@RequestParam PaymentStatus status) {
 
-    return ResponseEntity.status(HttpStatus.OK)
-            .body(paymentService.updatePaymentStatus(
-                    paymentId,
-                    status));
-}
+		return ResponseEntity.status(HttpStatus.OK).body(paymentService.updatePaymentStatus(token, paymentId, status));
+	}
 
 // Show All Payments
-@GetMapping("/all")
-public ResponseEntity<List<PaymentResponseDTO>>
-        showAllPayments() {
+	@GetMapping("/all")
+	public ResponseEntity<List<PaymentResponseDTO>> showAllPayments() {
 
-    return ResponseEntity.status(HttpStatus.OK)
-            .body(paymentService.showAllPayments());
-}
+		return ResponseEntity.status(HttpStatus.OK).body(paymentService.showAllPayments());
+	}
 
+	@DeleteMapping("/{paymentId}")
+	public ResponseEntity<String> deletePayment(@PathVariable Long paymentId) {
 
-@DeleteMapping("/{paymentId}")
-public ResponseEntity<String> deletePayment(
-        @PathVariable Long paymentId) {
+		paymentService.deletePayment(paymentId);
 
-    paymentService.deletePayment(paymentId);
+		return ResponseEntity.ok("Payment deleted successfully");
+	}
 
-    return ResponseEntity.ok(
-            "Payment deleted successfully");
-}
+	@GetMapping("/request/{requestId}")
+	public ResponseEntity<PaymentResponseDTO> getPaymentByServiceRequestId(@PathVariable Long requestId) {
+
+		return ResponseEntity.ok(paymentService.getPaymentByServiceRequestId(requestId));
+	}
 
 }

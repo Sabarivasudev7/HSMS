@@ -30,7 +30,7 @@ public class BookingResponseDTO {
 	private String address;
 	
 
-	private PaymentStatus status;
+	private String status;
 	
 
 	private LocalDateTime createdAt;
