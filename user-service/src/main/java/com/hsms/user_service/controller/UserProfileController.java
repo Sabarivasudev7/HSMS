@@ -1,13 +1,10 @@
 package com.hsms.user_service.controller;
 
-import java.util.List;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.hsms.user_service.exception.UserNotFoundException;
-import com.hsms.user_service.model.UserProfileDto;
 import com.hsms.user_service.model.UserRegistrationDto;
 import com.hsms.user_service.service.UserProfileService;
 
@@ -17,6 +14,9 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
 public class UserProfileController {
+
+    private static final String ADMIN = "ADMIN";
+    private static final String ACCESS_DENIED = "Access Denied";
 
     private final UserProfileService service;
 
@@ -30,36 +30,38 @@ public class UserProfileController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getUser(
+    public ResponseEntity<Object> getUser(
             @PathVariable Long id,
             @RequestHeader("X-Role") String role) {
 
-        if (!"ADMIN".equals(role)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access Denied");
+        if (!ADMIN.equals(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(ACCESS_DENIED);
         }
 
         return ResponseEntity.ok(service.getById(id));
     }
 
     @GetMapping
-    public ResponseEntity<?> getAllUsers(
+    public ResponseEntity<Object> getAllUsers(
             @RequestHeader("X-Role") String role) {
 
-        if (!"ADMIN".equals(role)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access Denied");
+        if (!ADMIN.equals(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(ACCESS_DENIED);
         }
-        
 
         return ResponseEntity.ok(service.getAll());
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteUser(
+    public ResponseEntity<Object> deleteUser(
             @PathVariable Long id,
             @RequestHeader("X-Role") String role) {
 
-        if (!"ADMIN".equals(role)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access Denied");
+        if (!ADMIN.equals(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(ACCESS_DENIED);
         }
 
         service.delete(id);
@@ -68,6 +70,7 @@ public class UserProfileController {
 
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<String> handleUserNotFound(UserNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ex.getMessage());
     }
 }

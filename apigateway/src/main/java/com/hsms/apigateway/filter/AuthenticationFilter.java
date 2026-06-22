@@ -1,8 +1,6 @@
 package com.hsms.apigateway.filter;
 
 import java.io.IOException;
-import java.util.List;
-
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -33,10 +31,10 @@ public class AuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
-        if (!validator.isSecured.test(request)) {
-            filterChain.doFilter(request, response);
-            return;
-        }
+    	if (!validator.isSecured(request)) {
+    	    filterChain.doFilter(request, response);
+    	    return;
+    	}
 
         String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
 

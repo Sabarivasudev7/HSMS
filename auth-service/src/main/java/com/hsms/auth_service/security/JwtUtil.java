@@ -1,7 +1,6 @@
 package com.hsms.auth_service.security;
 
 import java.util.Date;
-import java.util.List;
 import javax.crypto.SecretKey;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;

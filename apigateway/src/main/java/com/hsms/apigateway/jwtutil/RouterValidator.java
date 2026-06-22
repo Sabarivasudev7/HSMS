@@ -1,7 +1,6 @@
 package com.hsms.apigateway.jwtutil;
 
 import java.util.List;
-import java.util.function.Predicate;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Component;
 
@@ -16,6 +15,7 @@ public class RouterValidator {
             "/actuator"
            );
 
-    public Predicate<HttpServletRequest> isSecured =request -> openApiEndpoints.stream().noneMatch(uri -> request.getRequestURI().contains(uri));
-
+    public boolean isSecured(HttpServletRequest request) {
+        return openApiEndpoints.stream().noneMatch(uri -> request.getRequestURI().contains(uri));
+    }
 }

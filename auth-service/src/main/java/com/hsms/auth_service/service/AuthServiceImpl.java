@@ -6,6 +6,7 @@ import com.hsms.auth_service.entity.AuthUser;
 import com.hsms.auth_service.enums.Role;
 import com.hsms.auth_service.exception.UserAlreadyExistsException;
 import com.hsms.auth_service.model.RegisterRequest;
+import com.hsms.auth_service.model.RegisterResponse;
 import com.hsms.auth_service.repository.UserRepository;
 import com.hsms.auth_service.security.JwtUtil;
 import com.hsms.auth_service.model.UserRegistrationDto;
@@ -16,7 +17,7 @@ import com.hsms.auth_service.exception.InvalidCredentialsException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
-import java.util.List;
+
 
 @Service
 @RequiredArgsConstructor
@@ -28,7 +29,7 @@ public class AuthServiceImpl implements AuthService {
     private final UserServiceFeignClient userServiceFeignClient;
 
     @Override
-    public String register(RegisterRequest request) {
+    public RegisterResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new UserAlreadyExistsException("Email already exists");
         }
@@ -49,7 +50,7 @@ public class AuthServiceImpl implements AuthService {
         
         sendUserToUserService(userId, savedUser.getName(), savedUser.getEmail(), savedUser.getRole().name());
 
-        return "User Registered Successfully";
+        return new RegisterResponse(savedUser.getId(),"User Registered Successfully");
     }
 
     @Override

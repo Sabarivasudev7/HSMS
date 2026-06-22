@@ -16,70 +16,85 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CustomerProfileController {
 
+    private static final String CUSTOMER = "CUSTOMER";
+    private static final String ACCESS_DENIED = "Access Denied";
+
     private final CustomerProfileService service;
 
-   
     @PostMapping
-    public ResponseEntity<?> createCustomer(
+    public ResponseEntity<Object> createCustomer(
             @Valid @RequestBody CustomerProfileDto dto,
             @RequestHeader("X-Role") String role,
             @RequestHeader("X-User-Id") Long userId) {
 
-        if (!"CUSTOMER".equals(role)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access Denied");
+        if (!CUSTOMER.equals(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(ACCESS_DENIED);
         }
+
         return ResponseEntity.ok(service.createCustomer(userId, dto));
     }
 
-   
     @GetMapping("/{id}")
-    public ResponseEntity<?> getCustomer(
+    public ResponseEntity<Object> getCustomer(
             @PathVariable Long id,
+            @RequestHeader("X-Role") String role,
+            @RequestHeader("X-User-Id") Long userId) {
+
+        if ("ADMIN".equals(role)
+                || "SERVICE_MANAGER".equals(role)
+                || (CUSTOMER.equals(role) && userId.equals(id))) {
+
+            return ResponseEntity.ok(service.getById(id));
+        }
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(ACCESS_DENIED);
+    }
+
+    @GetMapping
+    public ResponseEntity<Object> getAllCustomers(
             @RequestHeader("X-Role") String role) {
 
         if (!"ADMIN".equals(role) && !"SERVICE_MANAGER".equals(role)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access Denied");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(ACCESS_DENIED);
         }
-        return ResponseEntity.ok(service.getById(id));
-    }
 
-    
-    @GetMapping
-    public ResponseEntity<?> getAllCustomers(@RequestHeader("X-Role") String role) {
-        if (!"ADMIN".equals(role) && !"SERVICE_MANAGER".equals(role)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access Denied");
-        }
         return ResponseEntity.ok(service.getAll());
     }
 
-
     @PutMapping
-    public ResponseEntity<?> updateCustomer(
+    public ResponseEntity<Object> updateCustomer(
             @Valid @RequestBody CustomerProfileDto dto,
             @RequestHeader("X-Role") String role,
             @RequestHeader("X-User-Id") Long userId) {
 
-        if (!"CUSTOMER".equals(role)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access Denied");
+        if (!CUSTOMER.equals(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(ACCESS_DENIED);
         }
+
         return ResponseEntity.ok(service.update(userId, dto));
     }
 
-    
     @DeleteMapping
-    public ResponseEntity<?> deleteCustomer(
+    public ResponseEntity<Object> deleteCustomer(
             @RequestHeader("X-Role") String role,
             @RequestHeader("X-User-Id") Long userId) {
 
-        if (!"CUSTOMER".equals(role)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access Denied");
+        if (!CUSTOMER.equals(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(ACCESS_DENIED);
         }
+
         service.delete(userId);
         return ResponseEntity.noContent().build();
     }
 
     @ExceptionHandler(CustomerNotFoundException.class)
     public ResponseEntity<String> handleCustomerNotFound(CustomerNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ex.getMessage());
     }
 }
